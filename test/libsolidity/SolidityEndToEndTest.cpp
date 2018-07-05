@@ -1821,7 +1821,7 @@ BOOST_AUTO_TEST_CASE(transfer_ether)
 			constructor() public payable {}
 			function a(address addr, uint amount) public returns (uint) {
 				addr.transfer(amount);
-				return this.balance;
+				return address(this).balance;
 			}
 			function b(address addr, uint amount) {
 				addr.transfer(amount);
@@ -2528,10 +2528,10 @@ BOOST_AUTO_TEST_CASE(contracts_as_addresses)
 		}
 		contract test {
 			helper h;
-			constructor() public payable { h = new helper(); h.send(5); }
+			constructor() public payable { h = new helper(); address(h).send(5); }
 			function getBalance() public returns (uint256 myBalance, uint256 helperBalance) {
-				myBalance = this.balance;
-				helperBalance = h.balance;
+				myBalance = address(this).balance;
+				helperBalance = address(h).balance;
 			}
 		}
 	)";
@@ -2546,7 +2546,7 @@ BOOST_AUTO_TEST_CASE(gas_and_value_basic)
 		contract helper {
 			bool flag;
 			function getBalance() payable public returns (uint256 myBalance) {
-				return this.balance;
+				return address(this).balance;
 			}
 			function setFlag() public { flag = true; }
 			function getFlag() public returns (bool fl) { return flag; }
@@ -2563,7 +2563,7 @@ BOOST_AUTO_TEST_CASE(gas_and_value_basic)
 			}
 			function checkState() public returns (bool flagAfter, uint myBal) {
 				flagAfter = h.getFlag();
-				myBal = this.balance;
+				myBal = address(this).balance;
 			}
 		}
 	)";
@@ -2579,7 +2579,7 @@ BOOST_AUTO_TEST_CASE(value_complex)
 	char const* sourceCode = R"(
 		contract helper {
 			function getBalance() payable public returns (uint256 myBalance) {
-				return this.balance;
+				return address(this).balance;
 			}
 		}
 		contract test {
@@ -2600,7 +2600,7 @@ BOOST_AUTO_TEST_CASE(value_insane)
 	char const* sourceCode = R"(
 		contract helper {
 			function getBalance() payable public returns (uint256 myBalance) {
-				return this.balance;
+				return address(this).balance;
 			}
 		}
 		contract test {
@@ -2635,7 +2635,7 @@ BOOST_AUTO_TEST_CASE(value_for_constructor)
 			}
 			function getFlag() public returns (bool ret) { return h.getFlag(); }
 			function getName() public returns (bytes3 ret) { return h.getName(); }
-			function getBalances() public returns (uint me, uint them) { me = this.balance; them = h.balance;}
+			function getBalances() public returns (uint me, uint them) { me = address(this).balance; them = address(h).balance;}
 		}
 	)";
 	compileAndRun(sourceCode, 22, "Main");
@@ -3079,7 +3079,7 @@ BOOST_AUTO_TEST_CASE(default_fallback_throws)
 	char const* sourceCode = R"YY(
 		contract A {
 			function f() public returns (bool) {
-				return this.call("");
+				return address(this).call("");
 			}
 		}
 	)YY";
@@ -3804,7 +3804,7 @@ BOOST_AUTO_TEST_CASE(call_forward_bytes)
 		contract sender {
 			constructor() public { rec = new receiver(); }
 			function() external { savedData = msg.data; }
-			function forward() public returns (bool) { !rec.call(savedData); return true; }
+			function forward() public returns (bool) { !address(rec).call(savedData); return true; }
 			function clear() public returns (bool) { delete savedData; return true; }
 			function val() public returns (uint) { return rec.received(); }
 			receiver rec;
@@ -3833,18 +3833,18 @@ BOOST_AUTO_TEST_CASE(call_forward_bytes_length)
 			receiver rec;
 			constructor() public { rec = new receiver(); }
 			function viaCalldata() public returns (uint) {
-				require(rec.call(msg.data));
+				require(address(rec).call(msg.data));
 				return rec.calledLength();
 			}
 			function viaMemory() public returns (uint) {
 				bytes memory x = msg.data;
-				require(rec.call(x));
+				require(address(rec).call(x));
 				return rec.calledLength();
 			}
 			bytes s;
 			function viaStorage() public returns (uint) {
 				s = msg.data;
-				require(rec.call(s));
+				require(address(rec).call(s));
 				return rec.calledLength();
 			}
 		}
@@ -3875,8 +3875,8 @@ BOOST_AUTO_TEST_CASE(copying_bytes_multiassign)
 			constructor() public { rec = new receiver(); }
 			function() external { savedData1 = savedData2 = msg.data; }
 			function forward(bool selector) public returns (bool) {
-				if (selector) { rec.call(savedData1); delete savedData1; }
-				else { rec.call(savedData2); delete savedData2; }
+				if (selector) { address(rec).call(savedData1); delete savedData1; }
+				else { address(rec).call(savedData2); delete savedData2; }
 				return true;
 			}
 			function val() public returns (uint) { return rec.received(); }
@@ -4330,8 +4330,8 @@ BOOST_AUTO_TEST_CASE(bytes_in_arguments)
 			function g(uint a) { result *= a; }
 			function test(uint a, bytes data1, bytes data2, uint b) external returns (uint r_a, uint r, uint r_b, uint l) {
 				r_a = a;
-				this.call(data1);
-				this.call(data2);
+				address(this).call(data1);
+				address(this).call(data2);
 				r = result;
 				r_b = b;
 				l = data1.length;
@@ -6210,7 +6210,7 @@ BOOST_AUTO_TEST_CASE(evm_exceptions_in_constructor_call_fail)
 		contract A {
 			constructor()
 			{
-				this.call("123");
+				address(this).call("123");
 			}
 		}
 		contract B {
@@ -6274,7 +6274,7 @@ BOOST_AUTO_TEST_CASE(failing_send)
 			constructor() public payable {}
 			function callHelper(address _a) public returns (bool r, uint bal) {
 				r = !_a.send(5);
-				bal = this.balance;
+				bal = address(this).balance;
 			}
 		}
 	)";
@@ -6297,7 +6297,7 @@ BOOST_AUTO_TEST_CASE(send_zero_ether)
 			constructor() public payable {}
 			function s() public returns (bool) {
 				Receiver r = new Receiver();
-				return r.send(0);
+				return address(r).send(0);
 			}
 		}
 	)";
@@ -9432,7 +9432,7 @@ BOOST_AUTO_TEST_CASE(calling_nonexisting_contract_throws)
 				return 7;
 			}
 			function h() public returns (uint) {
-				d.call(""); // this does not throw (low-level)
+				address(d).call(""); // this does not throw (low-level)
 				return 7;
 			}
 		}
@@ -11193,7 +11193,7 @@ BOOST_AUTO_TEST_CASE(bubble_up_error_messages_through_transfer)
 				revert("message");
 			}
 			function f() public {
-				this.transfer(0);
+				address(this).transfer(0);
 			}
 		}
 		contract C {
@@ -11468,13 +11468,13 @@ BOOST_AUTO_TEST_CASE(delegatecall_return_value)
 				return value;
 			}
 			function get_delegated() external returns (bool) {
-				return this.delegatecall(abi.encodeWithSignature("get()"));
+				return address(this).delegatecall(abi.encodeWithSignature("get()"));
 			}
 			function assert0() external view {
 				assert(value == 0);
 			}
 			function assert0_delegated() external returns (bool) {
-				return this.delegatecall(abi.encodeWithSignature("assert0()"));
+				return address(this).delegatecall(abi.encodeWithSignature("assert0()"));
 			}
 		}
 	)DELIMITER";
@@ -12184,7 +12184,7 @@ BOOST_AUTO_TEST_CASE(abi_encode_call)
 				uint[] memory b = new uint[](2);
 				b[0] = 6;
 				b[1] = 7;
-				require(this.call(abi.encodeWithSignature("c(uint256,uint256[])", a, b)));
+				require(address(this).call(abi.encodeWithSignature("c(uint256,uint256[])", a, b)));
 				return x;
 			}
 		}
