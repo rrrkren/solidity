@@ -47,14 +47,35 @@ function test_truffle
       if [ -n "$branch" ]
       then
         echo "Cloning $branch of $repo..."
-        git clone --depth 1 "$repo" -b "$branch" "$DIR"
+        git clone --depth 1 "$repo" -b "$branch" "$DIR/$name"
       else
         echo "Cloning $repo..."
-        git clone --depth 1 "$repo" "$DIR"
+        git clone --depth 1 "$repo" "$DIR/$name"
       fi
-      cd "$DIR"
+      cd "$DIR/$name"
       echo "Current commit hash: `git rev-parse HEAD`"
       npm install
+
+	  echo "Cloning truffle next..."
+      git clone --depth 1 https://github.com/trufflesuite/truffle.git -b next "$DIR"/truffle
+      cd "$DIR"/truffle
+      echo "Prepare building truffle next..."
+      npm install -g lerna
+      npm install -g yarn
+      npm install
+      echo "Bootstrap truffle next..."
+      npm run bootstrap
+      echo "Build truffle next..."
+      lerna run build
+
+      cd "$DIR/$name"
+
+      echo "Replace truffle in $name with truffle next"
+      rm -rf node_modules/truffle
+      ln -s "$DIR/truffle/packages/*" node_modules
+
+#      npm install bignumber
+
       find . -name soljson.js -exec cp "$SOLJSON" {} \;
       if [ "$name" == "Gnosis" ]; then
         echo "Replaced fixed-version pragmas..."
