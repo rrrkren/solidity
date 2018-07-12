@@ -42,6 +42,7 @@ Breaking Changes:
  * Type Checker: Disallow uninitialized storage variables. This was already the case in the experimental 0.5.0 mode.
  * Type Checker: Only accept a single ``bytes`` type for ``.call()`` (and family), ``keccak256()``, ``sha256()`` and ``ripemd160()``.
  * Type Checker: Fallback function must be external. This was already the case in the experimental 0.5.0 mode.
+ * Type Checker: Interface functions must be declared external.
  * Remove obsolete ``std`` directory from the Solidity repository. This means accessing ``https://github.com/ethereum/soldity/blob/develop/std/*.sol`` (or ``https://github.com/ethereum/solidity/std/*.sol`` in Remix) will not be possible.
  * Syntax Checker: Named return values in function types are an error.
  * Syntax Checker: Disallow unary ``+``. This was already the case in the experimental 0.5.0 mode.
